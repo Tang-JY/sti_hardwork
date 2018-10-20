@@ -1,41 +1,35 @@
 #ifndef __USART1_H
 #define __USART1_H
 
-#define USART_DEBUG//debugºê¿ª¹Ø
+
+
+//#define USART_DEBUG//debugå®å¼€å…³
 #ifdef USART_DEBUG
 #define PRINT(info) {printf(info);}
 #else
 #define PRINT(info) {}
-#endif
+#endif /* USART_DEBUG */
+
+
 
 #include "stm32f4xx.h"
-
 #include <stdio.h>
 
-#define RX_BUFFER_LEN 1024
-#define TX_BUFFER_LEN 1024
+#define RX_BUFFER_LEN 256
+#define TX_BUFFER_LEN 256
 
-extern u8 RX_BUFFER[RX_BUFFER_LEN];//½ÓÊÜ»º³åÇø
-extern u8 TX_BUFFER[TX_BUFFER_LEN];//·¢ËÍ»º³åÇø
+extern u8 RX_BUFFER[RX_BUFFER_LEN];//æ¥å—ç¼“å†²åŒº
+extern u8 TX_BUFFER[TX_BUFFER_LEN];//å‘é€ç¼“å†²åŒº
 
-extern u16 RX_Availiable; //µ±»º³åÇøÄÚÓĞÊı¾İÊ±£¬´Ë±äÁ¿Îª1
+extern u16 RX_Availiable; //å½“ç¼“å†²åŒºå†…æœ‰æ•°æ®æ—¶ï¼Œæ­¤å˜é‡ä¸º1
 
-void usart1_Init(u32);
-//´®¿Ú1³õÊ¼»¯
+extern void usart1Init(u32 baud);
+extern void usart1SendByte(u8 data);
+extern void usart1SendStr(char* str);
+extern void usart1SendData(u8* data,u8 N);
 
-void usart1_SendByte(u8);
-//·¢ËÍÒ»¸ö×Ö½Ú
-
-void usart1_SendStr(char*);
-//·¢ËÍÒ»¸ö×Ö·û´®£¬ÒÔ\0½áÎ²
-
-void usart1_SendData(u8*,u8);
-//·¢ËÍÒ»¸öÒ»¶¨³¤¶ÈµÄÊı¾İ°ü£¬²»³¬¹ı256×Ö½Ú¡£
-
-u8 usart1_ReadByte(void);
-//¶ÁÈ¡»º³åÇøÖĞµÄÒ»¸ö×Ö½Ú£¬ÔÚRX_AcceptableÎª1Ê±ÔÙµ÷ÓÃ´Ëº¯Êı
-u8 usart1_ReadCmd(char*,u8);
-//¶ÁÈ¡»º³åÇø£¬Ö±µ½¶Áµ½\r»ò\n£¬»ò³¤¶È´ïµ½ÏŞÖÆ
+u8 usart1ReadByte(void);
+//è¯»å–ç¼“å†²åŒºä¸­çš„ä¸€ä¸ªå­—èŠ‚ï¼Œåœ¨RX_Acceptableä¸º1æ—¶å†è°ƒç”¨æ­¤å‡½æ•°
 
 #endif
 
