@@ -3,11 +3,11 @@
 #include "usart1.h"
 //#include "pwm.h"
 
-//ÊµÀı»¯±àÂëÆ÷½á¹¹Ìå
+//å®ä¾‹åŒ–ç¼–ç å™¨ç»“æ„ä½“
 EncoderTypeDef encoder0;
 EncoderTypeDef encoder1;
 
-//ÉÏÒç¡¢ÏÂÒçÊ±µÄÆ«ÒÆÁ¿
+//ä¸Šæº¢ã€ä¸‹æº¢æ—¶çš„åç§»é‡
 vs32 offset0 = 0, offset1 = 0;
 //extern const u32 dt;
 volatile float _dt = 10.0f;
@@ -19,59 +19,61 @@ void encoder_Init(float dt)
 	
 	_dt = dt;
 	
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);//¶¨Ê±Æ÷2Ê±ÖÓÊ¹ÄÜ
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);//¶¨Ê±Æ÷5Ê±ÖÓÊ¹ÄÜ
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);//å®šæ—¶å™¨2æ—¶é’Ÿä½¿èƒ½
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);//å®šæ—¶å™¨5æ—¶é’Ÿä½¿èƒ½
 	
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE);//GPIOAÊ±ÖÓÊ¹ÄÜ
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB,ENABLE);//GPIOBÊ±ÖÓÊ¹ÄÜ
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE);//GPIOAæ—¶é’Ÿä½¿èƒ½
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB,ENABLE);//GPIOBæ—¶é’Ÿä½¿èƒ½
 	
-	//GPIOA³õÊ¼»¯
+	//GPIOAåˆå§‹åŒ–
 	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_5;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;  //¸´ÓÃ
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;  //å¤ç”¨
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);	
 	
-	//GPIOB³õÊ¼»¯
+	//GPIOBåˆå§‹åŒ–
 	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_3;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
-	//GPIO¸´ÓÃÓ³Éä
+	//GPIOå¤ç”¨æ˜ å°„
 	GPIO_PinAFConfig(GPIOA,GPIO_PinSource0,GPIO_AF_TIM5); 
 	GPIO_PinAFConfig(GPIOA,GPIO_PinSource1,GPIO_AF_TIM5); 
 	GPIO_PinAFConfig(GPIOA,GPIO_PinSource5,GPIO_AF_TIM2);
 	GPIO_PinAFConfig(GPIOB,GPIO_PinSource3,GPIO_AF_TIM2);
 	
-	//¶¨Ê±Æ÷Ê±»ùµ¥ÔªÅäÖÃ
-	TIM2->ARR  =  4*LINE_NUM*GEARBOX;//È¦Êı*¼õËÙ±¶Êı*ÏßÊı=Âö³åÊı£¬Âö³åÊı*4=¼ÆÊıÖµ¡£×ªÒ»È¦¸ÕºÃÒç³ö
-	TIM2->CNT  =  2*LINE_NUM*GEARBOX;//³õÊ¼ÖµÎªÒ»°ë
+	//å®šæ—¶å™¨æ—¶åŸºå•å…ƒé…ç½®
+	TIM2->ARR  =  4*LINE_NUM*GEARBOX;//åœˆæ•°*å‡é€Ÿå€æ•°*çº¿æ•°=è„‰å†²æ•°ï¼Œè„‰å†²æ•°*4=è®¡æ•°å€¼ã€‚è½¬ä¸€åœˆåˆšå¥½æº¢å‡º
+	TIM2->CNT  =  2*LINE_NUM*GEARBOX;//åˆå§‹å€¼ä¸ºä¸€åŠ
 	
-	TIM5->ARR  =  4*LINE_NUM*GEARBOX;//È¦Êı*¼õËÙ±¶Êı*ÏßÊı=Âö³åÊı£¬Âö³åÊı*4=¼ÆÊıÖµ¡£×ªÒ»È¦¸ÕºÃÒç³ö
-	TIM5->CNT  =  2*LINE_NUM*GEARBOX;//³õÊ¼ÖµÎªÒ»°ë
-	
-
-	//ÊäÈë²¶»ñÓ³Éä
-	TIM2->CCMR1 |= 0x0001<<8;//TI2Ó³Éäµ½IC2
-	TIM2->CCMR1 |= 0x0001<<0;//TI1Ó³Éäµ½IC1
-	
-	TIM5->CCMR1 |= 0x0001<<8;//TI2Ó³Éäµ½IC2
-	TIM5->CCMR1 |= 0x0001<<0;//TI1Ó³Éäµ½IC1  
-	
-	//¶¨Ê±Æ÷±àÂëÆ÷Ä£Ê½ÅäÖÃ
-	TIM2->SMCR &= ~0x0007;TIM2->SMCR |= 0x0003;//±àÂëÆ÷Ä£Ê½3£¬Ë«±ßÑØ¾ù¼ÆÊı
-
-	TIM5->SMCR &= ~0x0007;TIM5->SMCR |= 0x0003;//±àÂëÆ÷Ä£Ê½3£¬Ë«±ßÑØ¾ù¼ÆÊı
-	
+	TIM5->ARR  =  4*LINE_NUM*GEARBOX;//åœˆæ•°*å‡é€Ÿå€æ•°*çº¿æ•°=è„‰å†²æ•°ï¼Œè„‰å†²æ•°*4=è®¡æ•°å€¼ã€‚è½¬ä¸€åœˆåˆšå¥½æº¢å‡º
+	TIM5->CNT  =  2*LINE_NUM*GEARBOX;//åˆå§‹å€¼ä¸ºä¸€åŠ
 	
 
-	encoder0.deg      = 180;//µç»ú³õÊ¼½Ç¶ÈÎª0£»
+	//è¾“å…¥æ•è·æ˜ å°„
+	TIM2->CCMR1 |= 0x0001<<8;//TI2æ˜ å°„åˆ°IC2
+	TIM2->CCMR1 |= 0x0001<<0;//TI1æ˜ å°„åˆ°IC1
+	
+	TIM5->CCMR1 |= 0x0001<<8;//TI2æ˜ å°„åˆ°IC2
+	TIM5->CCMR1 |= 0x0001<<0;//TI1æ˜ å°„åˆ°IC1  
+	
+	//å®šæ—¶å™¨ç¼–ç å™¨æ¨¡å¼é…ç½®
+	TIM2->SMCR &= ~0x0007;
+	TIM2->SMCR |= 0x0003;//ç¼–ç å™¨æ¨¡å¼3ï¼ŒåŒè¾¹æ²¿å‡è®¡æ•°
+
+	TIM5->SMCR &= ~0x0007;
+	TIM5->SMCR |= 0x0003;//ç¼–ç å™¨æ¨¡å¼3ï¼ŒåŒè¾¹æ²¿å‡è®¡æ•°
+	
+	
+
+	encoder0.deg      = 180;//ç”µæœºåˆå§‹è§’åº¦ä¸º0ï¼›
 	encoder0.deg_last = 0;
 	encoder0.deg_rel  = 0;
 	
-	encoder1.deg      = 0;//µç»ú³õÊ¼½Ç¶ÈÎª0£»
+	encoder1.deg      = 0;//ç”µæœºåˆå§‹è§’åº¦ä¸º0ï¼›
 	encoder1.deg_last = 0;
 	encoder1.deg_rel  = 0;
 	
-	//ÖĞ¶ÏÅäÖÃ
+	//ä¸­æ–­é…ç½®
 	NVIC_InitStructure.NVIC_IRQChannel                   = TIM2_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;
@@ -84,11 +86,11 @@ void encoder_Init(float dt)
 	NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 	
-	//Ê¹ÄÜ¶¨Ê±Æ÷ÖĞ¶Ï
+	//ä½¿èƒ½å®šæ—¶å™¨ä¸­æ–­
 	TIM2->DIER |=0x0001;
 	TIM5->DIER |=0x0001;
 	
-	//¼ÆÊıÆ÷´ò¿ª
+	//è®¡æ•°å™¨æ‰“å¼€
 	TIM2->CR1  |= 0x0001;
 	TIM5->CR1  |= 0x0001;
 }
@@ -100,10 +102,10 @@ void TIM2_IRQHandler(void)
 	if(TIM2->SR & 0x0001){
 		TIM2->SR &= ~(0x0001);
 		
-		if(!(TIM2->CR1 & (0x0001<<4))){//CR1 DRÎ»Îª0£¬µİÔö¼ÆÊı			
+		if(!(TIM2->CR1 & (0x0001<<4))){//CR1 DRä½ä¸º0ï¼Œé€’å¢è®¡æ•°			
 			offset0 = _offset;
 			
-		}else{//µİ¼õ¼ÆÊı
+		}else{//é€’å‡è®¡æ•°
 			offset0 = -1*_offset;
 		}	
 	}
@@ -115,7 +117,7 @@ void TIM5_IRQHandler(void)
 	if(TIM5->SR & 0x0001){
 		TIM5->SR &= ~(0x0001);
 		
-		if(!(TIM5->CR1 & (0x0001<<4))){//CR1 DRÎ»Îª0£¬µİÔö¼ÆÊı
+		if(!(TIM5->CR1 & (0x0001<<4))){//CR1 DRä½ä¸º0ï¼Œé€’å¢è®¡æ•°
 			offset1 = _offset;
 			
 		}else{
@@ -125,45 +127,46 @@ void TIM5_IRQHandler(void)
 }
 
 void encoder_Update()
-{//Ò»¸ö¿ØÖÆÖÜÆÚ½áÊø£¬¿ªÊ¼¶ÁÈ¡
+{
+	//ä¸€ä¸ªæ§åˆ¶å‘¨æœŸç»“æŸï¼Œå¼€å§‹è¯»å–
 	static vs32 cnt0_last = 2*LINE_NUM*GEARBOX , cnt1_last = 2*LINE_NUM*GEARBOX;
 	vs32 cnt0,cnt1;
 	const float rpm_factor = 15000.0f/(LINE_NUM*GEARBOX*_dt);
 	const float angle_factor = 90.0f/(1.0f*LINE_NUM*GEARBOX);
 	
-	//¶Á¶¨Ê±Æ÷
+	//è¯»å®šæ—¶å™¨
 	cnt0 = TIM2->CNT;
 	cnt1 = TIM5->CNT;
 	
-	//±£´æÉÏ´Î¾ø¶Ô½Ç¶ÈÖµ(-180~+180¶È)
+	//ä¿å­˜ä¸Šæ¬¡ç»å¯¹è§’åº¦å€¼(-180~+180åº¦)
 	encoder0.deg_last = encoder0.deg;
 	encoder1.deg_last = encoder1.deg;
 	
-	//±£´æÉÏ´ÎÏà¶Ô½Ç¶ÈÖµ£¨Ïà¶ÔÓÚÉÏµçÊ±µÄ½Ç¶È£©
+	//ä¿å­˜ä¸Šæ¬¡ç›¸å¯¹è§’åº¦å€¼ï¼ˆç›¸å¯¹äºä¸Šç”µæ—¶çš„è§’åº¦ï¼‰
 	encoder0.deg_rel_last = encoder0.deg_rel;
-	encoder1.deg_rel_last = encoder1.deg_rel;//±£´æÉÏ´ÎÏà¶Ô½Ç¶ÈÖµ
+	encoder1.deg_rel_last = encoder1.deg_rel;//ä¿å­˜ä¸Šæ¬¡ç›¸å¯¹è§’åº¦å€¼
 	
-	//¼ÆËã±¾´Î¾ø¶Ô½Ç¶ÈÖµ
-	//encoder0.deg =  90.0f*(cnt0 - 2.0f*LINE_NUM*GEARBOX)/(LINE_NUM*GEARBOX);//¼ÆËã±¾´Î½Ç¶ÈÖµ
-	//encoder1.deg =  90.0f*(cnt1 - 2.0f*LINE_NUM*GEARBOX)/(LINE_NUM*GEARBOX);//¼ÆËã±¾´Î½Ç¶ÈÖµ
-	encoder0.deg = angle_factor*(cnt0 - 2.0f*LINE_NUM*GEARBOX);//¼ÆËã±¾´Î½Ç¶ÈÖµ
+	//è®¡ç®—æœ¬æ¬¡ç»å¯¹è§’åº¦å€¼
+	//encoder0.deg =  90.0f*(cnt0 - 2.0f*LINE_NUM*GEARBOX)/(LINE_NUM*GEARBOX);//è®¡ç®—æœ¬æ¬¡è§’åº¦å€¼
+	//encoder1.deg =  90.0f*(cnt1 - 2.0f*LINE_NUM*GEARBOX)/(LINE_NUM*GEARBOX);//è®¡ç®—æœ¬æ¬¡è§’åº¦å€¼
+	encoder0.deg = angle_factor*(cnt0 - 2.0f*LINE_NUM*GEARBOX);//è®¡ç®—æœ¬æ¬¡è§’åº¦å€¼
 	encoder1.deg = angle_factor*(cnt1 - 2.0f*LINE_NUM*GEARBOX);
 	
-	//¼ÆËã±¾´ÎÏà¶Ô½Ç¶ÈÖµ
+	//è®¡ç®—æœ¬æ¬¡ç›¸å¯¹è§’åº¦å€¼
 	encoder0.deg_rel += angle_factor*(cnt0 - cnt0_last + offset0);
 	encoder1.deg_rel += angle_factor*(cnt1 - cnt1_last + offset1);
 	
 	
-	//¼ÆËãËÙ¶È(dt (ms) = dt/60000 (min))
+	//è®¡ç®—é€Ÿåº¦(dt (ms) = dt/60000 (min))
 	encoder0.rpm = rpm_factor*(cnt0 - cnt0_last + offset0);
 	encoder1.rpm = rpm_factor*(cnt1 - cnt1_last + offset1);
 	
 	
-	//ÖØÖÃoffset
+	//é‡ç½®offset
 	offset0 = 0;
 	offset1 = 0;
 	
-	//¼ÇÂ¼±¾´ÎÖµ
+	//è®°å½•æœ¬æ¬¡å€¼
 	cnt0_last = cnt0;
 	cnt1_last = cnt1;
 }
