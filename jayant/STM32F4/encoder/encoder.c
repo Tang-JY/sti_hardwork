@@ -19,10 +19,17 @@ void encoder_Init(float dt)
 	
 	_dt = dt;
 	
+<<<<<<< HEAD
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);//定时器2时钟使能
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);//定时器5时钟使能
 	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE);//GPIOA时钟使能
+=======
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);//定时器2时钟使能
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);//定时器5时钟使能
+	
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE);  //GPIOA时钟使能
+>>>>>>> c8e30e77de30a5cfc8e8682a60a9e730a70007f2
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB,ENABLE);//GPIOB时钟使能
 	
 	//GPIOA初始化
@@ -36,8 +43,13 @@ void encoder_Init(float dt)
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 	//GPIO复用映射
+<<<<<<< HEAD
 	GPIO_PinAFConfig(GPIOA,GPIO_PinSource0,GPIO_AF_TIM5); 
 	GPIO_PinAFConfig(GPIOA,GPIO_PinSource1,GPIO_AF_TIM5); 
+=======
+	GPIO_PinAFConfig(GPIOA,GPIO_PinSource0,GPIO_AF_TIM5);
+	GPIO_PinAFConfig(GPIOA,GPIO_PinSource1,GPIO_AF_TIM5);
+>>>>>>> c8e30e77de30a5cfc8e8682a60a9e730a70007f2
 	GPIO_PinAFConfig(GPIOA,GPIO_PinSource5,GPIO_AF_TIM2);
 	GPIO_PinAFConfig(GPIOB,GPIO_PinSource3,GPIO_AF_TIM2);
 	
@@ -54,6 +66,7 @@ void encoder_Init(float dt)
 	TIM2->CCMR1 |= 0x0001<<0;//TI1映射到IC1
 	
 	TIM5->CCMR1 |= 0x0001<<8;//TI2映射到IC2
+<<<<<<< HEAD
 	TIM5->CCMR1 |= 0x0001<<0;//TI1映射到IC1  
 	
 	//定时器编码器模式配置
@@ -62,6 +75,14 @@ void encoder_Init(float dt)
 
 	TIM5->SMCR &= ~0x0007;
 	TIM5->SMCR |= 0x0003;//编码器模式3，双边沿均计数
+=======
+	TIM5->CCMR1 |= 0x0001<<0;//TI1映射到IC1
+	
+	//定时器编码器模式配置
+	TIM2->SMCR &= ~0x0007;TIM2->SMCR |= 0x0003;//编码器模式3，双边沿均计数
+
+	TIM5->SMCR &= ~0x0007;TIM5->SMCR |= 0x0003;//编码器模式3，双边沿均计数
+>>>>>>> c8e30e77de30a5cfc8e8682a60a9e730a70007f2
 	
 	
 
@@ -119,16 +140,19 @@ void TIM5_IRQHandler(void)
 		
 		if(!(TIM5->CR1 & (0x0001<<4))){//CR1 DR位为0，递增计数
 			offset1 = _offset;
-			
 		}else{
 			offset1 = -1*_offset;
-		}	
+		}
 	}
 }
 
 void encoder_Update()
+<<<<<<< HEAD
 {
 	//一个控制周期结束，开始读取
+=======
+{//一个控制周期结束，开始读取
+>>>>>>> c8e30e77de30a5cfc8e8682a60a9e730a70007f2
 	static vs32 cnt0_last = 2*LINE_NUM*GEARBOX , cnt1_last = 2*LINE_NUM*GEARBOX;
 	vs32 cnt0,cnt1;
 	const float rpm_factor = 15000.0f/(LINE_NUM*GEARBOX*_dt);
