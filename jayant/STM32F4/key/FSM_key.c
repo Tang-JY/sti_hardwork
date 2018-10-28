@@ -1,14 +1,7 @@
-#include <key/FSM_key.h>
+#include "FSM_key.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-
-#include "inc/hw_types.h"   //提供了HWREG等的读写寄存器用的宏
-#include "inc/hw_memmap.h"  //描述了所有外设的基地址
-#include "inc/hw_gpio.h"    //描述了GPIO的寄存器相对于其基地址偏移量
-
-#include "driverlib/sysctl.h" //提供了系统控制的库函数(使能外设时钟0)
-#include "driverlib/gpio.h"   //提供了GPIO的库函数
 
 
 /*声明硬件相关的内部函数*/
@@ -213,7 +206,8 @@ void keyScanAll(void)
 static uint8_t keyGPIORead(uint32_t Port, uint32_t PinNumber)//读取GPIO电平
 {
     uint8_t voltage = 0;
-    voltage = GPIOPinRead(Port , 0x00000001<<PinNumber);
+    //voltage = GPIOPinRead(Port , 0x00000001<<PinNumber);
+    voltage = GPIO_ReadInputDataBit((GPIO_TypeDef*)Port , 0x0001<<PinNumber );
 
     return voltage;
 }
@@ -222,74 +216,37 @@ static uint8_t keyGPIORead(uint32_t Port, uint32_t PinNumber)//读取GPIO电平
 static int keyGPIOInit(uint32_t Port, uint32_t PinNumber)
 {
     uint32_t sysctl_periph_base;//系统控制外设基地址
-    uint8_t unlock_flag = 0;//是否解锁
+    GPIO_InitTypeDef gpio_init_struct;
+
 
     //参数只传入了GPIO的外设基地址，需要自己推导出时钟使能需要的值
     switch(Port){
-        case GPIO_PORTA_BASE     :
-        case GPIO_PORTA_AHB_BASE : sysctl_periph_base = SYSCTL_PERIPH_GPIOA; break;
-        case GPIO_PORTB_BASE:
-        case GPIO_PORTB_AHB_BASE : sysctl_periph_base = SYSCTL_PERIPH_GPIOB; break;
-        case GPIO_PORTC_BASE:
-        case GPIO_PORTC_AHB_BASE : sysctl_periph_base = SYSCTL_PERIPH_GPIOC; break;
-        case GPIO_PORTD_BASE:
-        case GPIO_PORTD_AHB_BASE : sysctl_periph_base = SYSCTL_PERIPH_GPIOD; break;
-        case GPIO_PORTE_BASE:
-        case GPIO_PORTE_AHB_BASE : sysctl_periph_base = SYSCTL_PERIPH_GPIOE; break;
-        case GPIO_PORTF_BASE:
-        case GPIO_PORTF_AHB_BASE : sysctl_periph_base = SYSCTL_PERIPH_GPIOF; break;
+        case GPIOA_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOA; break;
+        case GPIOB_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOB; break;
+        case GPIOC_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOC; break;
+        case GPIOD_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOD; break;
+        case GPIOE_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOE; break;
+        case GPIOF_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOF; break;
+        case GPIOG_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOG; break;
+        case GPIOH_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOH; break;
+        case GPIOI_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOI; break;
+        case GPIOJ_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOJ; break;
+        case GPIOK_BASE : sysctl_periph_base = RCC_AHB1Periph_GPIOK; break;
+        
         default: return -1;//发生错误
     }
 
     //外设使能
-    SysCtlPeripheralEnable(sysctl_periph_base);
-
-    //判断是否解锁
-    switch(Port){
-        default:
-            unlock_flag = 0;
-            break;
-        case  GPIO_PORTC_BASE   :
-            if(PinNumber < 4){//PC[3:0]被锁定
-                unlock_flag = 1;
-            }
-            break;
-        case  GPIO_PORTC_AHB_BASE   :
-            if(PinNumber < 4){//PC[3:0]被锁定
-                unlock_flag = 1;
-            }
-            break;
-        case  GPIO_PORTD_BASE   :
-            if(PinNumber == 7){//PD7被锁定
-                unlock_flag = 1;
-            }
-            break;
-        case  GPIO_PORTD_AHB_BASE   :
-            if(PinNumber == 7){//PD7被锁定
-                unlock_flag = 1;
-            }
-            break;
-        case  GPIO_PORTF_BASE   :
-            if(PinNumber == 0){//PF0被锁定
-                unlock_flag = 1;
-            }
-            break;
-        case  GPIO_PORTF_AHB_BASE   :
-            if(PinNumber == 0){//PF0被锁定
-                unlock_flag = 1;
-            }
-            break;
-    }
-
-    //解锁
-    if(unlock_flag){
-        HWREG(Port + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-        HWREG(Port + GPIO_O_CR) |= 0x01<<PinNumber;
-        HWREG(Port + GPIO_O_LOCK) = 0;
-    }
+    //SysCtlPeripheralEnable(sysctl_periph_base);
+    RCC_AHB1PeriphClockCmd(sysctl_periph_base , ENABLE);
 
     //GPIO配置为输入模式
-    GPIOPinTypeGPIOInput(Port, 0x00000001<<PinNumber);//GPIO配置为输入
+    //GPIOPinTypeGPIOInput(Port, 0x00000001<<PinNumber);//GPIO配置为输入
+    gpio_init_struct.GPIO_Pin = 0x0001 << PinNumber;
+    gpio_init_struct.GPIO_Mode = GPIO_Mode_IN;
+		gpio_init_struct.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_Init((GPIO_TypeDef*)Port , &gpio_init_struct);
+
 
     return 0;
 }

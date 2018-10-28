@@ -1,5 +1,6 @@
 #ifndef __FSM_KEY_H
 #define __FSM_KEY_H
+#include "sys.h"
 
 #include <stdint.h>
 /*

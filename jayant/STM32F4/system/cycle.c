@@ -1,20 +1,14 @@
 #include "cycle.h"
 
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
 
-#include "inc/hw_memmap.h"
-#include "inc/hw_gpio.h"
-#include "inc/hw_types.h"
-#include "inc/hw_timer.h"
-#include "driverlib/timer.h"
-#include "driverlib/interrupt.h"
-#include "inc/hw_ints.h"
+
 
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "stm32f4xx_tim.h"
 
+//#define cycleTick TIM7_IRQHandler
 
 /*ÉùÃ÷È«¾Ö±äÁ¿*/
 volatile bool g_cycle_flag = 0;//ÖÐ¶Ï±êÖ¾
@@ -28,9 +22,14 @@ static void cycleTimerEnable(uint32_t delta_t , void(*intHandler)(void));//ÓëÓ²¼
 static void cycleTimerIntClear(void);//ÓëÓ²¼þÓÐ¹ØµÄÖÐ¶Ï×´Ì¬Çå³ý²Ù×÷
 
 /*Ó²¼þÎÞ¹ØµÄÄÚ²¿º¯Êý*/
-static void tick(void);//ÖÐ¶Ï·þÎñº¯Êý
+static void cycleTick(void);//ÖÐ¶Ï·þÎñº¯Êý
 static uint32_t leastCommonMultiple(uint32_t m, uint32_t n);//Çó×îÐ¡¹«±¶Êý
 
+//void (*TIM7_IRQHandler)(void) = NULL;
+void TIM7_IRQHandler()
+{
+	cycleTick();
+}
 
  /*ÊµÏÖÍâ²¿º¯Êý*/
 
@@ -40,7 +39,7 @@ static uint32_t leastCommonMultiple(uint32_t m, uint32_t n);//Çó×îÐ¡¹«±¶Êý
  */
 void cycleInit(uint32_t delta_t)
 {
-    cycleTimerEnable( delta_t , tick );
+    cycleTimerEnable( delta_t , cycleTick );
 }
 
 /*
@@ -155,16 +154,47 @@ void cycleTaskUnregister(cycleTask_TypeDef* task)
  */
 static void cycleTimerEnable(uint32_t delta_t , void(*intHandler)(void))
 {
-        uint32_t system_clock;//ÏµÍ³Ê±ÖÓÆµÂÊ(Hz)
-        system_clock = SysCtlClockGet();
-
-        SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER5);
-        TimerConfigure   (TIMER5_BASE , TIMER_CFG_PERIODIC);
-        TimerLoadSet(TIMER5_BASE ,TIMER_BOTH ,(uint32_t)(0.001f*delta_t*system_clock) );
-        TimerIntRegister (TIMER5_BASE ,TIMER_BOTH, intHandler);
-        TimerIntEnable   (TIMER5_BASE, TIMER_TIMA_TIMEOUT);
-        IntEnable(INT_TIMER5A);
-        TimerEnable(TIMER5_BASE, TIMER_BOTH);
+	
+        //SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER5);
+        //TimerConfigure   (TIMER5_BASE , TIMER_CFG_PERIODIC);
+        //TimerLoadSet(TIMER5_BASE ,TIMER_BOTH ,(uint32_t)(0.001f*delta_t*system_clock) );
+        //TimerIntRegister (TIMER5_BASE ,TIMER_BOTH, intHandler);
+        //TimerIntEnable   (TIMER5_BASE, TIMER_TIMA_TIMEOUT);
+        //IntEnable(INT_TIMER5A);
+        //TimerEnable(TIMER5_BASE, TIMER_BOTH);
+	
+				TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+				NVIC_InitTypeDef NVIC_InitStructure;
+				
+	
+	
+				RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7,ENABLE); 
+				TIM_TimeBaseInitStructure.TIM_Period = (1000)*delta_t - 1; 
+	
+				RCC_ClocksTypeDef rcc;
+				RCC_GetClocksFreq(&rcc);//»ñµÃ×ÜÏßÊ±ÖÓ
+				if(rcc.HCLK_Frequency / rcc.PCLK1_Frequency == 1){
+					TIM_TimeBaseInitStructure.TIM_Prescaler = rcc.PCLK1_Frequency/1000000 -1;
+				}else{
+					TIM_TimeBaseInitStructure.TIM_Prescaler = 2*rcc.PCLK1_Frequency/1000000 -1;
+				}
+				TIM_TimeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up; 
+				//TIM_TimeBaseInitStructure.TIM_ClockDivision=TIM_CKD_DIV1;
+				TIM_TimeBaseInit(TIM7,&TIM_TimeBaseInitStructure);
+				TIM_ITConfig(TIM7,TIM_IT_Update,ENABLE); 
+	
+				NVIC_InitStructure.NVIC_IRQChannel=TIM7_IRQn; 
+				NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x01; 
+				NVIC_InitStructure.NVIC_IRQChannelSubPriority=0x03; 
+				NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
+				NVIC_Init(&NVIC_InitStructure);
+				TIM_Cmd(TIM7,ENABLE);
+		
+				//uint32_t system_clock;//ÏµÍ³Ê±ÖÓÆµÂÊ(Hz)
+        //system_clock = SysCtlClockGet();
+				
+				
+				
 }
 
 /*
@@ -172,13 +202,13 @@ static void cycleTimerEnable(uint32_t delta_t , void(*intHandler)(void))
  */
 static void cycleTimerIntClear(void)
 {
-    TimerIntClear(TIMER5_BASE , TIMER_TIMA_TIMEOUT);
+    TIM_ClearITPendingBit(TIM7,TIM_IT_Update);
 }
 
 /*
  * ¶¨Ê±Æ÷ÖÐ¶Ï·þÎñº¯Êý(Ó²¼þÎÞ¹Ø)
  */
-static void tick(void)
+static inline void cycleTick(void)
 {
     cycleTask_TypeDef *task = (cycleTask_TypeDef*)g_first_foreground_task;
     cycleTimerIntClear();
