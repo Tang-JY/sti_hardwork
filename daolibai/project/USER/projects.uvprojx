@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>template</TargetName>
+      <TargetName>daolibai</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060422::V5.06 update 4 (build 422)::ARMCC</pCCUsed>
@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\USER;..\FWLIB\inc</IncludePath>
+              <IncludePath>..\CORE;..\USER;..\FWLIB\inc;.\encoder;.\handle;.\pid;.\pwm;.\uart;..\SYSTEM\delay;..\SYSTEM\sys;.\system</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -393,6 +393,41 @@
               <FileName>system_stm32f4xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\system_stm32f4xx.c</FilePath>
+            </File>
+            <File>
+              <FileName>encoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\encoder\encoder.c</FilePath>
+            </File>
+            <File>
+              <FileName>init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\handle\init.c</FilePath>
+            </File>
+            <File>
+              <FileName>pid_handle.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\handle\pid_handle.c</FilePath>
+            </File>
+            <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\pid\pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\pwm\pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\uart\usart1.c</FilePath>
+            </File>
+            <File>
+              <FileName>cycle.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\system\cycle.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -618,6 +653,21 @@
               <FileName>stm32f4xx_wwdg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\FWLIB\src\stm32f4xx_wwdg.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>SYSTEM</GroupName>
+          <Files>
+            <File>
+              <FileName>delay.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\delay\delay.c</FilePath>
+            </File>
+            <File>
+              <FileName>sys.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SYSTEM\sys\sys.c</FilePath>
             </File>
           </Files>
         </Group>
