@@ -174,7 +174,7 @@ void _sys_exit(int x)
 } 
 int fputc(int ch, FILE *f)//输出重定向，以适用printf
 { 	
-	usart1_SendByte(ch);
+	usart1SendByte(ch);
 	return ch;
 }
 #endif

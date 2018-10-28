@@ -1,7 +1,7 @@
 #include "encoder.h"
-#include "delay.h"
+// #include "delay.h"
 #include "usart1.h"
-//#include "pwm.h"
+// #include "pwm.h"
 
 //实例化编码器结构体
 EncoderTypeDef encoder0;

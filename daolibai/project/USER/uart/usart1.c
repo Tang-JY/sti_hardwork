@@ -3,7 +3,7 @@
 #include "usart1.h"
 #include "stm32f4xx_usart.h"
 #include "stm32f4xx_gpio.h"
-#include "delay.h"
+// #include "delay.h"
 
 u8 RX_BUFFER[RX_BUFFER_LEN];//接受缓冲区
 u8 TX_BUFFER[TX_BUFFER_LEN];//发送缓冲区
@@ -174,7 +174,7 @@ void _sys_exit(int x)
 } 
 int fputc(int ch, FILE *f)//输出重定向，以适用printf
 { 	
-	usart1_SendByte(ch);
+	usart1SendByte(ch);
 	return ch;
 }
 #endif
