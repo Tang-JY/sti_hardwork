@@ -3,7 +3,7 @@
 #include "usart1.h"
 #include "stm32f4xx_usart.h"
 #include "stm32f4xx_gpio.h"
-#include "delay.h"
+// #include "delay.h"
 
 u8 RX_BUFFER[RX_BUFFER_LEN];//接受缓冲区
 u8 TX_BUFFER[TX_BUFFER_LEN];//发送缓冲区
