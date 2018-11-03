@@ -1,11 +1,11 @@
 #include "pwm.h"
 
-//APB1×ÜÏßÊ±ÖÓÆµÂÊÎª42M£¬´ÓAHB1µÃÀ´µÄ·ÖÆµÏµÊı²»Îª1£¬¹ÊAPB1ÉÏµÄ¶¨Ê±Æ÷Ê±ÖÓÒª³Ë2
+//APB1æ€»çº¿æ—¶é’Ÿé¢‘ç‡ä¸º42Mï¼Œä»AHB1å¾—æ¥çš„åˆ†é¢‘ç³»æ•°ä¸ä¸º1ï¼Œæ•…APB1ä¸Šçš„å®šæ—¶å™¨æ—¶é’Ÿè¦ä¹˜2
 
-#define PWM_PSC 42.0f           //Ô¤·ÖÆµÏµÊı
-#define PWM_TIM3 84000000.0f  //ÄÚ²¿Ê±ÖÓÆµÂÊ
+#define PWM_PSC 42.0f           //é¢„åˆ†é¢‘ç³»æ•°
+#define PWM_TIM3 84000000.0f  //å†…éƒ¨æ—¶é’Ÿé¢‘ç‡
 
-vu32 arr;//¼ÆÊıÆ÷ÖØ×°ÔØÖµ
+vu32 arr;//è®¡æ•°å™¨é‡è£…è½½å€¼
 volatile float pwm_min = 0.0f, pwm_max = 100.0f;
 
 void PWM_Init(float freq,float min,float max)
@@ -20,47 +20,47 @@ void PWM_Init(float freq,float min,float max)
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,ENABLE); 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB,ENABLE);
 	
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);// Ê¹ÄÜTIM3Ê±ÖÓ
-	TIM_Cmd(TIM3, ENABLE);  //Ê¹ÄÜTIM3
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);// ä½¿èƒ½TIM3æ—¶é’Ÿ
+	TIM_Cmd(TIM3, ENABLE);  //ä½¿èƒ½TIM3
 	
-	//GPIO¸´ÓÃÓ³Éä
+	//GPIOå¤ç”¨æ˜ å°„
 	GPIO_PinAFConfig(GPIOA,GPIO_PinSource6,GPIO_AF_TIM3);                                                                      	
 	GPIO_PinAFConfig(GPIOA,GPIO_PinSource7,GPIO_AF_TIM3);
 	GPIO_PinAFConfig(GPIOB,GPIO_PinSource0,GPIO_AF_TIM3);
 	GPIO_PinAFConfig(GPIOB,GPIO_PinSource1,GPIO_AF_TIM3);	
 
-   //ÉèÖÃ¸ÃÒı½ÅÎª¸´ÓÃÊä³ö¹¦ÄÜ,Êä³öTIM1 CH1µÄPWMÂö³å²¨ĞÎ
+   //è®¾ç½®è¯¥å¼•è„šä¸ºå¤ç”¨è¾“å‡ºåŠŸèƒ½,è¾“å‡ºTIM1 CH1çš„PWMè„‰å†²æ³¢å½¢
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7 ; //TIM_CH1
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;  //¸´ÓÃÊä³ö
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;  //å¤ç”¨è¾“å‡º
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //ÍÆÍìÊä³ö
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //æ¨æŒ½è¾“å‡º
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
   
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1 ; //TIM_CH1
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;  //¸´ÓÃÍÆÍìÊä³ö
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;  //å¤ç”¨æ¨æŒ½è¾“å‡º
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //ÍÆÍì¸´ÓÃÊä³ö
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //æ¨æŒ½å¤ç”¨è¾“å‡º
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
  
-	//TIM3¹ÒÔÚAPB1×ÜÏßÉÏ£¬APB1×ÜÏßÊ±ÖÓÎª42MHz£¬TIM3»ñµÃµÄÊ±ÖÓÎª84M
+	//TIM3æŒ‚åœ¨APB1æ€»çº¿ä¸Šï¼ŒAPB1æ€»çº¿æ—¶é’Ÿä¸º42MHzï¼ŒTIM3è·å¾—çš„æ—¶é’Ÿä¸º84M
 	arr = (u32)(PWM_TIM3/(PWM_PSC*freq));
-	TIM_TimeBaseStructure.TIM_Period = arr; //ÉèÖÃÔÚÏÂÒ»¸ö¸üĞÂÊÂ¼ş×°Èë»î¶¯µÄ×Ô¶¯ÖØ×°ÔØ¼Ä´æÆ÷ÖÜÆÚµÄÖµ	
-	TIM_TimeBaseStructure.TIM_Prescaler = (u32)(PWM_PSC-1); //ÉèÖÃÓÃÀ´×÷ÎªTIMxÊ±ÖÓÆµÂÊ³ıÊıµÄÔ¤·ÖÆµÖµ  
-	TIM_TimeBaseStructure.TIM_ClockDivision = 0; //ÉèÖÃÊ±ÖÓ·Ö¸î:TDTS = Tck_tim
-	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  //TIMÏòÉÏ¼ÆÊıÄ£Ê½
-	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure); //¸ù¾İTIM_TimeBaseInitStructÖĞÖ¸¶¨µÄ²ÎÊı³õÊ¼»¯TIMxµÄÊ±¼ä»ùÊıµ¥Î»¡¢
+	TIM_TimeBaseStructure.TIM_Period = arr; //è®¾ç½®åœ¨ä¸‹ä¸€ä¸ªæ›´æ–°äº‹ä»¶è£…å…¥æ´»åŠ¨çš„è‡ªåŠ¨é‡è£…è½½å¯„å­˜å™¨å‘¨æœŸçš„å€¼	
+	TIM_TimeBaseStructure.TIM_Prescaler = (u32)(PWM_PSC-1); //è®¾ç½®ç”¨æ¥ä½œä¸ºTIMxæ—¶é’Ÿé¢‘ç‡é™¤æ•°çš„é¢„åˆ†é¢‘å€¼  
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0; //è®¾ç½®æ—¶é’Ÿåˆ†å‰²:TDTS = Tck_tim
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  //TIMå‘ä¸Šè®¡æ•°æ¨¡å¼
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure); //æ ¹æ®TIM_TimeBaseInitStructä¸­æŒ‡å®šçš„å‚æ•°åˆå§‹åŒ–TIMxçš„æ—¶é—´åŸºæ•°å•ä½ã€
 	
-	TIM_ARRPreloadConfig(TIM3, ENABLE); //Ê¹ÄÜTIMxÔÚARRÉÏµÄÔ¤×°ÔØ¼Ä´æÆ÷
+	TIM_ARRPreloadConfig(TIM3, ENABLE); //ä½¿èƒ½TIMxåœ¨ARRä¸Šçš„é¢„è£…è½½å¯„å­˜å™¨
 	
 	
 
-	//TIM_OCInitStructure.TIM_Pulse = 300; //ÉèÖÃ´ı×°Èë²¶»ñ±È½Ï¼Ä´æÆ÷µÄÂö³åÖµ
-	//´ËÊôĞÔÖ»ÓĞ¸ß¼¶¶¨Ê±Æ÷²ÅÓÃµ½
-	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable; //±È½ÏÊä³öÊ¹ÄÜ
-	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High; //Êä³ö¼«ĞÔ:TIM Êä³ö±È½Ï ¼«ĞÔ ¸ß¡££¨ÓĞĞ§µçÆ½Îª¸ßµçÆ½£©
-	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1; //Ñ¡Ôñ¶¨Ê±Æ÷Ä£Ê½:TIMÂö³å¿í¶Èµ÷ÖÆÄ£Ê½1£¨¼ÆÊıÖµĞ¡ÓÚÉè¶¨ÖµÊ±ÎªÓĞĞ§µçÆ½£©
-	TIM_OC1Init(TIM3, &TIM_OCInitStructure);  //¸ù¾İTIM_OCInitStructÖĞÖ¸¶¨µÄ²ÎÊı³õÊ¼»¯ÍâÉèTIMx
-	TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);  //Ê¹ÄÜTIM3ÔÚCCR1ÉÏµÄÔ¤×°ÔØ¼Ä´æÆ÷
+	//TIM_OCInitStructure.TIM_Pulse = 300; //è®¾ç½®å¾…è£…å…¥æ•è·æ¯”è¾ƒå¯„å­˜å™¨çš„è„‰å†²å€¼
+	//æ­¤å±æ€§åªæœ‰é«˜çº§å®šæ—¶å™¨æ‰ç”¨åˆ°
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable; //æ¯”è¾ƒè¾“å‡ºä½¿èƒ½
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High; //è¾“å‡ºææ€§:TIM è¾“å‡ºæ¯”è¾ƒ ææ€§ é«˜ã€‚ï¼ˆæœ‰æ•ˆç”µå¹³ä¸ºé«˜ç”µå¹³ï¼‰
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1; //é€‰æ‹©å®šæ—¶å™¨æ¨¡å¼:TIMè„‰å†²å®½åº¦è°ƒåˆ¶æ¨¡å¼1ï¼ˆè®¡æ•°å€¼å°äºè®¾å®šå€¼æ—¶ä¸ºæœ‰æ•ˆç”µå¹³ï¼‰
+	TIM_OC1Init(TIM3, &TIM_OCInitStructure);  //æ ¹æ®TIM_OCInitStructä¸­æŒ‡å®šçš„å‚æ•°åˆå§‹åŒ–å¤–è®¾TIMx
+	TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);  //ä½¿èƒ½TIM3åœ¨CCR1ä¸Šçš„é¢„è£…è½½å¯„å­˜å™¨
 
   
   //TIM_OCInitStructure.TIM_Pulse = 150;
@@ -81,13 +81,13 @@ void PWM_Init(float freq,float min,float max)
 	TIM_OC4PreloadConfig(TIM3, TIM_OCPreload_Enable);
 
 
- // TIM_CtrlPWMOutputs(TIM3,ENABLE);	//MOE Ö÷Êä³öÊ¹ÄÜ	
- //¸ß¼¶¶¨Ê±Æ÷²ÅÓĞ
+ // TIM_CtrlPWMOutputs(TIM3,ENABLE);	//MOE ä¸»è¾“å‡ºä½¿èƒ½	
+ //é«˜çº§å®šæ—¶å™¨æ‰æœ‰
  
 	TIM_SetCompare1(TIM3,0);
 	TIM_SetCompare2(TIM3,0);
 	TIM_SetCompare3(TIM3,0);
-	TIM_SetCompare4(TIM3,0);//ÉèÖÃ±È½ÏÖµ£¬PWMÊä³öÕ¼¿Õ±ÈÎª0
+	TIM_SetCompare4(TIM3,0);//è®¾ç½®æ¯”è¾ƒå€¼ï¼ŒPWMè¾“å‡ºå ç©ºæ¯”ä¸º0
 }
 
 u8 Set_PWM_DutyRatio(u8 channel,float duty)

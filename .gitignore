@@ -6,6 +6,8 @@
 *.ko
 *.obj
 *.elf
+*.clf
+
 
 # Linker output
 *.ilk
@@ -53,3 +55,13 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+*.htm
+*.lnp
+*.dep
+*.TMP
+*.crf
+*.lst
+*.lnp
+*.sct
+*.Bak
