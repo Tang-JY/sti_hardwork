@@ -30,7 +30,7 @@ typedef struct {
 
 void pid_params_CFG(PID_TypeDef *pid, float *kp, float *ki, float *kd, float dt); //pid同步参数配置
 
-void pid_limits_CFG(PID_TypeDef *pid, float e_limit, float i_limit, float f_H); //pid非同步参数配置
+void pid_limits_CFG(PID_TypeDef *pid, float e_limit, float i_limit, float f_H); //pid非同步参数配置 f_H低通滤波器的截至频率
 
 void pid_data_CFG(PID_TypeDef *pid, float *target, float *feedback); //pid数据指针配置。pid级联时，可以方便地把&(pid1->u)作为pid2的target
 

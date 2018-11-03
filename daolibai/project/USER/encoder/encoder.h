@@ -6,36 +6,36 @@
 #include "stm32f4xx_tim.h"
 #include "stm32f4xx_rcc.h"
 
-//´Ë´úÂë±ØĞëÊ¹ÓÃ32Î»¶¨Ê±Æ÷£¨TIM2»òTIM5£©
+//æ­¤ä»£ç å¿…é¡»ä½¿ç”¨32ä½å®šæ—¶å™¨ï¼ˆTIM2æˆ–TIM5ï¼‰
 
-//±àÂëÆ÷Îª512Ïß
-//¼õËÙÏäÎª64/1
+//ç¼–ç å™¨ä¸º512çº¿
+//å‡é€Ÿç®±ä¸º64/1
 
-//TIM2Îª±àÂëÆ÷¼ÇÊı£¬
-//PB10 PB11 ×÷Îª±àÂëÆ÷A BÊäÈë
+//TIM2ä¸ºç¼–ç å™¨è®°æ•°ï¼Œ
+//PB10 PB11 ä½œä¸ºç¼–ç å™¨A Bè¾“å…¥
 
 
 
-#define LINE_NUM 512   //±àÂëÆ÷ÏßÊı
-#define GEARBOX  64 //¼õËÙ±È
+#define LINE_NUM 2000   //ç¼–ç å™¨çº¿æ•°
+#define GEARBOX  64 //å‡é€Ÿæ¯”
 
 
 typedef struct{
-	s8 derc;//Ğı×ª·½Ïò
-	float rpm;//Ğı×ªËÙ¶È
-	float deg;//µ±Ç°¾ø¶Ô½Ç¶È
+	s8 derc;//æ—‹è½¬æ–¹å‘
+	float rpm;//æ—‹è½¬é€Ÿåº¦
+	float deg;//å½“å‰ç»å¯¹è§’åº¦
 	float deg_last;
-	float deg_rel;//ÒÔ¿ª»úÊ±Îª0¡ãµÄÏà¶Ô½Ç¶È
-	float deg_rel_last;//ÉÏ´ÎÏà¶Ô½Ç¶È£¬ÓÃÓÚ¼ÆËãËÙ¶È
+	float deg_rel;//ä»¥å¼€æœºæ—¶ä¸º0Â°çš„ç›¸å¯¹è§’åº¦
+	float deg_rel_last;//ä¸Šæ¬¡ç›¸å¯¹è§’åº¦ï¼Œç”¨äºè®¡ç®—é€Ÿåº¦
 }EncoderTypeDef;
 
 extern  EncoderTypeDef encoder0;
 extern  EncoderTypeDef encoder1;
 
 
-void encoder_Init(float dt);//ÍâÉèÒı½Å³õÊ¼»¯
+void encoder_Init(float dt);//å¤–è®¾å¼•è„šåˆå§‹åŒ–
 
-void encoder_Update(void);//Êı¾İ¶ÁÈ¡
+void encoder_Update(void);//æ•°æ®è¯»å–
 
 #endif
 
