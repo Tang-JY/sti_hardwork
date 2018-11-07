@@ -16,32 +16,32 @@ void FH_Motor_Init(u32 freq,float min,float max)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 		
-	//pwmÊ¹ÄÜ
+	//pwmä½¿èƒ½
 	PWM_Init(freq,min,max);
 	//FH_MOtor_SetPWM(0,0);
 	
-	//GPIOEÊ±ÖÓÊ¹ÄÜ
+	//GPIOEæ—¶é’Ÿä½¿èƒ½
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE,ENABLE);
 	
-	//OTWºÍFAULTÒı½Å
+	//OTWå’ŒFAULTå¼•è„š
 	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_12|GPIO_Pin_14;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;  //ÊäÈë
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;  //è¾“å…¥
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);	
 	
-	//RESTABºÍRESTCDÒı½Å
+	//RESTABå’ŒRESTCDå¼•è„š
 	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_3|GPIO_Pin_5;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  //Êä³ö
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;  //è¾“å‡º
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;//ÉÏÀ­
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;//¿ªÂ©
+	GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;//ä¸Šæ‹‰
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;//å¼€æ¼
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
 	
-	//HÇÅÊ¹ÄÜ
+	//Hæ¡¥ä½¿èƒ½
 	GPIO_SetBits(GPIOE,GPIO_Pin_3);//RSTAB
 	GPIO_SetBits(GPIOE,GPIO_Pin_5);//RSTCD	
 	
-	//·¢ËÍĞÅÏ¢
+	//å‘é€ä¿¡æ¯
 	memcpy(txData.msg,msg_working,16);
 }
 
@@ -50,12 +50,12 @@ void FH_Motor_Init(u32 freq,float min,float max)
 void FH_Motor_SetPWM(float pwm0,float pwm1)
 {
 	if(      !GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_14)){
-		//µç»úÇı¶¯¹ıÈÈ
+		//ç”µæœºé©±åŠ¨è¿‡çƒ­
 		memcpy(txData.msg, msg_otw, 16);
 		GPIO_ResetBits(GPIOE,GPIO_Pin_3);//RSTAB
 		GPIO_ResetBits(GPIOE,GPIO_Pin_5);//RSTCD
 	}else if(!GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_12)){
-		//µç»úÇı¶¯´íÎó
+		//ç”µæœºé©±åŠ¨é”™è¯¯
 		memcpy(txData.msg, msg_fault  , 16);
 		GPIO_ResetBits(GPIOE,GPIO_Pin_3);//RSTAB
 		GPIO_ResetBits(GPIOE,GPIO_Pin_5);//RSTCD		
