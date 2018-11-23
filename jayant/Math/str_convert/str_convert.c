@@ -249,6 +249,19 @@ static int Float2Str_NoScientificNotation(char* str, float data, int precision, 
         *p = 'X';
         return N;
     }
+    //若小数部分转换为整数后的长度小于精度，要在小数点后补0
+    temp  = fixed_fraction;
+    temp2 = precision;
+    while(temp2 != 0){
+        if(!temp){
+            *p = '0';
+            p++;
+            length--;
+            N++;
+        }
+        temp2--;
+        temp /= 10;
+    }
     temp = Int2Str((char*)p , fixed_fraction , length);
     N += temp;
     p += temp;

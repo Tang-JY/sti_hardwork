@@ -3,29 +3,29 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "inc/hw_types.h"   //Ìá¹©ÁËHWREGµÈµÄ¶ÁĞ´¼Ä´æÆ÷ÓÃµÄºê
-#include "inc/hw_memmap.h"  //ÃèÊöÁËËùÓĞÍâÉèµÄ»ùµØÖ·
-#include "inc/hw_gpio.h"    //ÃèÊöÁËGPIOµÄ¼Ä´æÆ÷Ïà¶ÔÓÚÆä»ùµØÖ·Æ«ÒÆÁ¿
+#include "inc/hw_types.h"   //æä¾›äº†HWREGç­‰çš„è¯»å†™å¯„å­˜å™¨ç”¨çš„å®
+#include "inc/hw_memmap.h"  //æè¿°äº†æ‰€æœ‰å¤–è®¾çš„åŸºåœ°å€
+#include "inc/hw_gpio.h"    //æè¿°äº†GPIOçš„å¯„å­˜å™¨ç›¸å¯¹äºå…¶åŸºåœ°å€åç§»é‡
 
-#include "driverlib/sysctl.h" //Ìá¹©ÁËÏµÍ³¿ØÖÆµÄ¿âº¯Êı(Ê¹ÄÜÍâÉèÊ±ÖÓ0)
-#include "driverlib/gpio.h"   //Ìá¹©ÁËGPIOµÄ¿âº¯Êı
+#include "driverlib/sysctl.h" //æä¾›äº†ç³»ç»Ÿæ§åˆ¶çš„åº“å‡½æ•°(ä½¿èƒ½å¤–è®¾æ—¶é’Ÿ0)
+#include "driverlib/gpio.h"   //æä¾›äº†GPIOçš„åº“å‡½æ•°
 
 
-/*ÉùÃ÷Ó²¼şÏà¹ØµÄÄÚ²¿º¯Êı*/
-static int  keyGPIOInit(uint32_t Port, uint32_t PinNumber);//ÅäÖÃGPIOÎªÊäÈë
-static uint8_t keyGPIORead(uint32_t Port, uint32_t PinNumber);//¶ÁÈ¡GPIOµçÆ½
+/*å£°æ˜ç¡¬ä»¶ç›¸å…³çš„å†…éƒ¨å‡½æ•°*/
+static int  keyGPIOInit(uint32_t Port, uint32_t PinNumber);//é…ç½®GPIOä¸ºè¾“å…¥
+static uint8_t keyGPIORead(uint32_t Port, uint32_t PinNumber);//è¯»å–GPIOç”µå¹³
 
-/*ÉùÃ÷È«¾Ö±äÁ¿*/
-volatile key_TypeDef *g_first_key = NULL;//¼ÇÂ¼µÚÒ»¸ö°´¼ü½á¹¹ÌåµÄµØÖ·
+/*å£°æ˜å…¨å±€å˜é‡*/
+volatile key_TypeDef *g_first_key = NULL;//è®°å½•ç¬¬ä¸€ä¸ªæŒ‰é”®ç»“æ„ä½“çš„åœ°å€
 
-/*ÊµÏÖÍâ²¿º¯Êı*/
+/*å®ç°å¤–éƒ¨å‡½æ•°*/
 
 /*
- * °´¼ü³õÊ¼»¯
- * key      :     °´¼ü½á¹¹ÌåÖ¸Õë
- * Port     :     GPIO¶Ë¿Ú»ùµØÖ·(×ª»»Îªuint32_t)
- * PinNumber:     GPIOÒı½ÅºÅ(ÕûÊı)
- * Polarity :     ¼«ĞÔ£¬Ó²¼şÉÏ£¬°´¼ü°´ÏÂÊ±GPIO½«»á¶Áµ½µÄµçÆ½(HIGH»òLOW)
+ * æŒ‰é”®åˆå§‹åŒ–
+ * key      :     æŒ‰é”®ç»“æ„ä½“æŒ‡é’ˆ
+ * Port     :     GPIOç«¯å£åŸºåœ°å€(è½¬æ¢ä¸ºuint32_t)
+ * PinNumber:     GPIOå¼•è„šå·(æ•´æ•°)
+ * Polarity :     ææ€§ï¼Œç¡¬ä»¶ä¸Šï¼ŒæŒ‰é”®æŒ‰ä¸‹æ—¶GPIOå°†ä¼šè¯»åˆ°çš„ç”µå¹³(HIGHæˆ–LOW)
  */
 void keyInit(key_TypeDef* key,
                uint32_t Port,
@@ -34,14 +34,14 @@ void keyInit(key_TypeDef* key,
                void(*sigleClick)(void),
                void(*doubleClick)(void))
 {
-    static key_TypeDef* s_previous_key = NULL;//¼ÇÂ¼ÉÏÒ»¸ö°´¼üµÄµØÖ·
+    static key_TypeDef* s_previous_key = NULL;//è®°å½•ä¸Šä¸€ä¸ªæŒ‰é”®çš„åœ°å€
 
-    //°´¼üÅäÖÃ±£´æ
+    //æŒ‰é”®é…ç½®ä¿å­˜
     key->port                = Port;
     key->num                 = PinNumber;
     key->polarity            = Polarity;
-    key->singleClickCallback = sigleClick;//µ¥»÷»Øµ÷º¯Êı
-    key->doubleClickCallback = doubleClick;//Ë«»÷»Øµ÷º¯Êı
+    key->singleClickCallback = sigleClick;//å•å‡»å›è°ƒå‡½æ•°
+    key->doubleClickCallback = doubleClick;//åŒå‡»å›è°ƒå‡½æ•°
     key->state               = NORMAL;
     key->counter             = 0;
     key->sample[0]           = 0;
@@ -50,51 +50,51 @@ void keyInit(key_TypeDef* key,
     key->sample[3]           = 0;
     key->next                = NULL;
 
-    //ÅäÖÃGPIO
+    //é…ç½®GPIO
     keyGPIOInit(Port, PinNumber);
 
     if(s_previous_key == NULL){
-    //Èç¹ûÊÇµÚÒ»¸ö±»³õÊ¼»¯µÄ°´¼ü£¬½øĞĞÌØÊâÅäÖÃ
-        g_first_key = key;//±£´æËüµÄµØÖ·µ½È«¾Ö±äÁ¿
+    //å¦‚æœæ˜¯ç¬¬ä¸€ä¸ªè¢«åˆå§‹åŒ–çš„æŒ‰é”®ï¼Œè¿›è¡Œç‰¹æ®Šé…ç½®
+        g_first_key = key;//ä¿å­˜å®ƒçš„åœ°å€åˆ°å…¨å±€å˜é‡
     }else{
-    //²»ÊÇµÚÒ»¸ö±»³õÊ¼»¯µÄ°´¼ü£¬Ôò°Ñ±¾°´¼üµÄÁ´±íÁ¬½Óµ½ÉÏÒ»¸ö°´¼üÉÏ
+    //ä¸æ˜¯ç¬¬ä¸€ä¸ªè¢«åˆå§‹åŒ–çš„æŒ‰é”®ï¼Œåˆ™æŠŠæœ¬æŒ‰é”®çš„é“¾è¡¨è¿æ¥åˆ°ä¸Šä¸€ä¸ªæŒ‰é”®ä¸Š
         s_previous_key->next = key;
     }
 
-    //È«²¿ÅäÖÃÍê³É£¬°Ñ±¾°´¼üµÄµØÖ·Áô×÷ÏÂ´ÎÊ¹ÓÃ
+    //å…¨éƒ¨é…ç½®å®Œæˆï¼ŒæŠŠæœ¬æŒ‰é”®çš„åœ°å€ç•™ä½œä¸‹æ¬¡ä½¿ç”¨
     s_previous_key = key;
 }
 
-//É¨Ãèµ¥¸ö°´¼ü
+//æ‰«æå•ä¸ªæŒ‰é”®
 void keyScan(key_TypeDef* key)
 {
     uint32_t voltage;
-    const uint8_t key_event_press[4]    = {1,1,0,0}; //pressÊÂ¼ş
-    const uint8_t key_event_realease[4] = {0,0,1,1}; //releaseÊÂ¼ş
+    const uint8_t key_event_press[4]    = {1,1,0,0}; //pressäº‹ä»¶
+    const uint8_t key_event_realease[4] = {0,0,1,1}; //releaseäº‹ä»¶
     bool press_flag = 0 , release_flag = 0;
 
-    //±£´æ¾É²ÉÑùÖµ
+    //ä¿å­˜æ—§é‡‡æ ·å€¼
     key->sample[3] = key->sample[2];
     key->sample[2] = key->sample[1];
     key->sample[1] = key->sample[0];
 
     voltage = keyGPIORead(key->port , key->num);
 
-    //ĞÂ²ÉÑùÖµ
+    //æ–°é‡‡æ ·å€¼
     if( voltage&&(key->polarity) || (!voltage)&&(!(key->polarity)) ){
         key->sample[0] = 1;
     }else{
         key->sample[0] = 0;
     }
 
-    //ÊÂ¼ş
+    //äº‹ä»¶
     if      ( !memcmp(key->sample, key_event_press, 4) ){
         press_flag   = 1;
     }else if(!memcmp(key->sample, key_event_realease, 4)){
         release_flag = 1;
     }
 
-    //×´Ì¬»ú
+    //çŠ¶æ€æœº
     switch(key->state){
         case NORMAL:
             if(press_flag){
@@ -105,49 +105,49 @@ void keyScan(key_TypeDef* key)
 
 
         case PRE_ACTIVE:
-            if(key->counter <4){//40msÄÚ
-                if(release_flag){//40msÄÚÊÍ·Å
+            if(key->counter <4){//40mså†…
+                if(release_flag){//40mså†…é‡Šæ”¾
                     key->state   = PRE_HIT;
                     key->counter = 0;
                     break;
                 }
                 key->counter++;
-            }else{//40msÄÚÎ´ÊÍ·Å
+            }else{//40mså†…æœªé‡Šæ”¾
                 key->state   = PRE_LONG_PRESS;
                 key->counter = 0;
             }
             break;
 
         case PRE_LONG_PRESS:
-            if(key->counter < 100){//1sÄÚ
-                if(release_flag){//ÓÖÊÍ·ÅÁË
-                    key->state   = PRE_HIT;//Ëãµ¥»÷(»òË«»÷)
+            if(key->counter < 100){//1så†…
+                if(release_flag){//åˆé‡Šæ”¾äº†
+                    key->state   = PRE_HIT;//ç®—å•å‡»(æˆ–åŒå‡»)
                     key->counter = 0;
                     break;
                 }
                 key->counter++;
-            }else{//³¬¹ıÁË1s
+            }else{//è¶…è¿‡äº†1s
                 key->state   = LONG_PRESS;
                 key->counter = 0;
             }
             break;
 
         case PRE_HIT:
-            if(key->counter < 30){//300msÄÚ
-                if(press_flag){//ÓÖ°´ÏÂÒ»´Î
+            if(key->counter < 30){//300mså†…
+                if(press_flag){//åˆæŒ‰ä¸‹ä¸€æ¬¡
                     key->state   = DOUBLE_HIT;
                     key->counter = 0;
                     break;
                 }
                 key->counter++;
-            }else{//³¬¹ıÁË300ms
+            }else{//è¶…è¿‡äº†300ms
                 key->state   = SINGLE_HIT;
                 key->counter = 0;
             }
             break;
 
         case SINGLE_HIT:
-            //Ö´ĞĞµ¥»÷»Øµ÷º¯Êı
+            //æ‰§è¡Œå•å‡»å›è°ƒå‡½æ•°
             if(key->singleClickCallback != NULL){
                 key->singleClickCallback();
             }
@@ -155,10 +155,10 @@ void keyScan(key_TypeDef* key)
             break;
 
         case DOUBLE_HIT:
-            //Ö´ĞĞË«»÷»Øµ÷º¯Êı
+            //æ‰§è¡ŒåŒå‡»å›è°ƒå‡½æ•°
             if(key->doubleClickCallback != NULL){
                 key->doubleClickCallback();
-            }else if(key->singleClickCallback != NULL){//ÈôË«»÷»Øµ÷º¯ÊıÎ´×¢²á£¬ÔòÖ´ĞĞÁ½´Îµ¥»÷»Øµ÷º¯Êı
+            }else if(key->singleClickCallback != NULL){//è‹¥åŒå‡»å›è°ƒå‡½æ•°æœªæ³¨å†Œï¼Œåˆ™æ‰§è¡Œä¸¤æ¬¡å•å‡»å›è°ƒå‡½æ•°
                 key->singleClickCallback();
                 key->singleClickCallback();
             }
@@ -166,14 +166,14 @@ void keyScan(key_TypeDef* key)
             break;
 
         case LONG_PRESS:
-            //³¤°´×´Ì¬ÏÂ£¬Ã¿0.5sÖ´ĞĞÒ»´Îµ¥»÷»Øµ÷º¯Êı£¬Ñ­»·Ö´ĞĞ
+            //é•¿æŒ‰çŠ¶æ€ä¸‹ï¼Œæ¯0.5sæ‰§è¡Œä¸€æ¬¡å•å‡»å›è°ƒå‡½æ•°ï¼Œå¾ªç¯æ‰§è¡Œ
             if(release_flag){
                 key->state = NORMAL;
                 key->counter = 0;
                 break;
             }
-            if(!(key->counter%50)){//µ½´ï0.5s
-                //Ö´ĞĞµ¥»÷»Øµ÷º¯Êı
+            if(!(key->counter%50)){//åˆ°è¾¾0.5s
+                //æ‰§è¡Œå•å‡»å›è°ƒå‡½æ•°
                 if(key->singleClickCallback != NULL){
                     key->singleClickCallback();
                 }
@@ -187,7 +187,7 @@ void keyScan(key_TypeDef* key)
     }
 }
 
-//É¨ÃèÈ«Ìå°´¼ü
+//æ‰«æå…¨ä½“æŒ‰é”®
 void keyScanAll(void)
 {
     key_TypeDef* key_pointer = (key_TypeDef*)g_first_key;
@@ -196,8 +196,8 @@ void keyScanAll(void)
     {
         if(key_pointer != NULL)
         {
-            keyScan(key_pointer);//É¨Ãèµ¥¸ö°´¼ü
-            key_pointer = key_pointer->next;//ÑØÁ´±íÒÆ¶¯µ½ÏÂÒ»¸ö°´¼ü
+            keyScan(key_pointer);//æ‰«æå•ä¸ªæŒ‰é”®
+            key_pointer = key_pointer->next;//æ²¿é“¾è¡¨ç§»åŠ¨åˆ°ä¸‹ä¸€ä¸ªæŒ‰é”®
         }else{
             break;
         }
@@ -207,10 +207,10 @@ void keyScanAll(void)
 
 
 
-/*ÊµÏÖÄÚ²¿º¯Êı*/
+/*å®ç°å†…éƒ¨å‡½æ•°*/
 
-//GPIO¶ÁÈ¡µçÑ¹
-static uint8_t keyGPIORead(uint32_t Port, uint32_t PinNumber)//¶ÁÈ¡GPIOµçÆ½
+//GPIOè¯»å–ç”µå‹
+static uint8_t keyGPIORead(uint32_t Port, uint32_t PinNumber)//è¯»å–GPIOç”µå¹³
 {
     uint8_t voltage = 0;
     voltage = GPIOPinRead(Port , 0x00000001<<PinNumber);
@@ -218,13 +218,13 @@ static uint8_t keyGPIORead(uint32_t Port, uint32_t PinNumber)//¶ÁÈ¡GPIOµçÆ½
     return voltage;
 }
 
-//GPIOÅäÖÃº¯Êı
+//GPIOé…ç½®å‡½æ•°
 static int keyGPIOInit(uint32_t Port, uint32_t PinNumber)
 {
-    uint32_t sysctl_periph_base;//ÏµÍ³¿ØÖÆÍâÉè»ùµØÖ·
-    uint8_t unlock_flag = 0;//ÊÇ·ñ½âËø
+    uint32_t sysctl_periph_base;//ç³»ç»Ÿæ§åˆ¶å¤–è®¾åŸºåœ°å€
+    uint8_t unlock_flag = 0;//æ˜¯å¦è§£é”
 
-    //²ÎÊıÖ»´«ÈëÁËGPIOµÄÍâÉè»ùµØÖ·£¬ĞèÒª×Ô¼ºÍÆµ¼³öÊ±ÖÓÊ¹ÄÜĞèÒªµÄÖµ
+    //å‚æ•°åªä¼ å…¥äº†GPIOçš„å¤–è®¾åŸºåœ°å€ï¼Œéœ€è¦è‡ªå·±æ¨å¯¼å‡ºæ—¶é’Ÿä½¿èƒ½éœ€è¦çš„å€¼
     switch(Port){
         case GPIO_PORTA_BASE     :
         case GPIO_PORTA_AHB_BASE : sysctl_periph_base = SYSCTL_PERIPH_GPIOA; break;
@@ -238,58 +238,58 @@ static int keyGPIOInit(uint32_t Port, uint32_t PinNumber)
         case GPIO_PORTE_AHB_BASE : sysctl_periph_base = SYSCTL_PERIPH_GPIOE; break;
         case GPIO_PORTF_BASE:
         case GPIO_PORTF_AHB_BASE : sysctl_periph_base = SYSCTL_PERIPH_GPIOF; break;
-        default: return -1;//·¢Éú´íÎó
+        default: return -1;//å‘ç”Ÿé”™è¯¯
     }
 
-    //ÍâÉèÊ¹ÄÜ
+    //å¤–è®¾ä½¿èƒ½
     SysCtlPeripheralEnable(sysctl_periph_base);
 
-    //ÅĞ¶ÏÊÇ·ñ½âËø
+    //åˆ¤æ–­æ˜¯å¦è§£é”
     switch(Port){
         default:
             unlock_flag = 0;
             break;
         case  GPIO_PORTC_BASE   :
-            if(PinNumber < 4){//PC[3:0]±»Ëø¶¨
+            if(PinNumber < 4){//PC[3:0]è¢«é”å®š
                 unlock_flag = 1;
             }
             break;
         case  GPIO_PORTC_AHB_BASE   :
-            if(PinNumber < 4){//PC[3:0]±»Ëø¶¨
+            if(PinNumber < 4){//PC[3:0]è¢«é”å®š
                 unlock_flag = 1;
             }
             break;
         case  GPIO_PORTD_BASE   :
-            if(PinNumber == 7){//PD7±»Ëø¶¨
+            if(PinNumber == 7){//PD7è¢«é”å®š
                 unlock_flag = 1;
             }
             break;
         case  GPIO_PORTD_AHB_BASE   :
-            if(PinNumber == 7){//PD7±»Ëø¶¨
+            if(PinNumber == 7){//PD7è¢«é”å®š
                 unlock_flag = 1;
             }
             break;
         case  GPIO_PORTF_BASE   :
-            if(PinNumber == 0){//PF0±»Ëø¶¨
+            if(PinNumber == 0){//PF0è¢«é”å®š
                 unlock_flag = 1;
             }
             break;
         case  GPIO_PORTF_AHB_BASE   :
-            if(PinNumber == 0){//PF0±»Ëø¶¨
+            if(PinNumber == 0){//PF0è¢«é”å®š
                 unlock_flag = 1;
             }
             break;
     }
 
-    //½âËø
+    //è§£é”
     if(unlock_flag){
         HWREG(Port + GPIO_O_LOCK) = GPIO_LOCK_KEY;
         HWREG(Port + GPIO_O_CR) |= 0x01<<PinNumber;
         HWREG(Port + GPIO_O_LOCK) = 0;
     }
 
-    //GPIOÅäÖÃÎªÊäÈëÄ£Ê½
-    GPIOPinTypeGPIOInput(Port, 0x00000001<<PinNumber);//GPIOÅäÖÃÎªÊäÈë
+    //GPIOé…ç½®ä¸ºè¾“å…¥æ¨¡å¼
+    GPIOPinTypeGPIOInput(Port, 0x00000001<<PinNumber);//GPIOé…ç½®ä¸ºè¾“å…¥
 
     return 0;
 }
