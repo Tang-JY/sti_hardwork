@@ -19,7 +19,6 @@ void pid_params_CFG(PID_TypeDef *pid, float *kp, float *ki, float *kd, float dt)
     pid->ei = 0;
     pid->fd = 0;
     pid->u = 0;
-    pid->ui = 0;
 }
 
 //pid限辐配置
@@ -57,29 +56,31 @@ float pid_Calc(PID_TypeDef *pid)
     pid->feedback_LPF[0] = feedback*temp[1] + pid->feedback_LPF[1]*temp[2];
 
 	//计算非线性P系数
-    temp[0] = pid->e[0]/(1.0f*pid->e_limit);
-    temp[1] = temp[0]*temp[0]*temp[0]*temp[0] + 1.0f;   
-    temp[2] = 1.0f - 0.7f/temp[1];
-    P = temp[2]*(*(pid->kp));//非线性P系数 函数P = (1.0 - 0.7/(1+x^4))*kp,其中x = e/e_limit;
-	
+    //temp[0] = pid->e[0]/(1.0f*pid->e_limit);
+    //temp[1] = temp[0]*temp[0]*temp[0]*temp[0] + 1.0f;   
+    //temp[2] = 1.0f - 0.7f/temp[1];
+    //P = temp[2]*(*(pid->kp));//非线性P系数 函数P = (1.0 - 0.7/(1+x^4))*kp,其中x = e/e_limit;
+	P = *(pid->kp);//不再使用非线性PID
+
 	//计算非线性D系数
-	if(pid->feedback[0] > pid->feedback[1]){//若反馈值在增长，则越靠近目标（e越小），D系数应当越大，D是减函数；若超调(e更小，变为负数)，D应当更大，防止过冲		
-		if(pid->e[0] > -1.0f*pid->e_limit){
-			D = 0.6f*(*(pid->kd))/(1.f + 0.4f*temp[0]);//非线性D系数 当e=0时D=0.6*kd;当e = -1*e_limit时，D=kd;
-		}else{
-			D = *(pid->kd);
-		}
-	}else{//若反馈值在减少，则越靠近目标(e越大)，D系数应当越大，D是增函数；若超调(e更大，变为正数)，D应当更大，防止过冲
-		if(pid->e[0] < 1.0f*pid->e_limit){
-			D = 0.6f*(*(pid->kd))/(1.f - 0.4f*temp[0]);
-		}else{
-			D = *(pid->kd);
-		}
-		
-	}
+	//if(pid->feedback[0] > pid->feedback[1]){//若反馈值在增长，则越靠近目标（e越小），D系数应当越大，D是减函数；若超调(e更小，变为负数)，D应当更大，防止过冲		
+	//	if(pid->e[0] > -1.0f*pid->e_limit){
+	//		D = 0.6f*(*(pid->kd))/(1.f + 0.4f*temp[0]);//非线性D系数 当e=0时D=0.6*kd;当e = -1*e_limit时，D=kd;
+	//	}else{
+	//		D = *(pid->kd);
+	//	}
+	//}else{//若反馈值在减少，则越靠近目标(e越大)，D系数应当越大，D是增函数；若超调(e更大，变为正数)，D应当更大，防止过冲
+	//	if(pid->e[0] < 1.0f*pid->e_limit){
+	//		D = 0.6f*(*(pid->kd))/(1.f - 0.4f*temp[0]);
+	//	}else{
+	//		D = *(pid->kd);
+	//	}
+	//	
+	//}
+	D = *(pid->kd);//不再使用非线性PID
 
 	//积分分离
-    if(pid->e[0] > pid->e_limit || pid->e[0] < -1.0f*pid->e_limit){
+    if(pid->e[0] > pid->e_limit || pid->e[0] < -1.0f * pid->e_limit){
         I = 0;
 		pid->ei = 0.0f;
     }else{
@@ -90,7 +91,6 @@ float pid_Calc(PID_TypeDef *pid)
 	//积分限幅（抗积分饱和）
     if(pid->ei >= pid->ei_limit ){
         pid->ei = pid->ei_limit;
-
     }else if(pid->ei <= -1.0f*pid->ei_limit){
         pid->ei = -1.0f*pid->ei_limit;
     }
