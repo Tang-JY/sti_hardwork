@@ -111,7 +111,7 @@ void cycleMainBackgroundTask(void)
 {
     cycleTask_TypeDef *task = (cycleTask_TypeDef*)g_first_background_task;
     if(g_cycle_flag){
-
+    g_cycle_flag = 0;
         while(task != NULL){
             if( !(g_cycle_count % task->period) ){
                 if( task->callback != NULL ){
