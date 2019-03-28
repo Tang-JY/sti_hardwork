@@ -10,20 +10,20 @@
 
 //#define cycleTick TIM7_IRQHandler
 
-/*ÉùÃ÷È«¾Ö±äÁ¿*/
-volatile bool g_cycle_flag = 0;//ÖĞ¶Ï±êÖ¾
-volatile uint32_t g_cycle_count = 0;//ÖĞ¶Ï¼ÆÊı
-volatile uint32_t g_cycle_period = 1;//×î´óÖÜÆÚ
+/*å£°æ˜å…¨å±€å˜é‡*/
+volatile bool g_cycle_flag = 0;//ä¸­æ–­æ ‡å¿—
+volatile uint32_t g_cycle_count = 0;//ä¸­æ–­è®¡æ•°
+volatile uint32_t g_cycle_period = 1;//æœ€å¤§å‘¨æœŸ
 volatile cycleTask_TypeDef *g_first_foreground_task = NULL;
 volatile cycleTask_TypeDef *g_first_background_task = NULL;
 
-/*Ó²¼şÏà¹ØµÄÄÚ²¿º¯Êı*/
-static void cycleTimerEnable(uint32_t delta_t , void(*intHandler)(void));//ÓëÓ²¼şÓĞ¹ØµÄÊ¹ÄÜ²Ù×÷
-static void cycleTimerIntClear(void);//ÓëÓ²¼şÓĞ¹ØµÄÖĞ¶Ï×´Ì¬Çå³ı²Ù×÷
+/*ç¡¬ä»¶ç›¸å…³çš„å†…éƒ¨å‡½æ•°*/
+static void cycleTimerEnable(uint32_t delta_t , void(*intHandler)(void));//ä¸ç¡¬ä»¶æœ‰å…³çš„ä½¿èƒ½æ“ä½œ
+static void cycleTimerIntClear(void);//ä¸ç¡¬ä»¶æœ‰å…³çš„ä¸­æ–­çŠ¶æ€æ¸…é™¤æ“ä½œ
 
-/*Ó²¼şÎŞ¹ØµÄÄÚ²¿º¯Êı*/
-static void cycleTick(void);//ÖĞ¶Ï·şÎñº¯Êı
-static uint32_t leastCommonMultiple(uint32_t m, uint32_t n);//Çó×îĞ¡¹«±¶Êı
+/*ç¡¬ä»¶æ— å…³çš„å†…éƒ¨å‡½æ•°*/
+static void cycleTick(void);//ä¸­æ–­æœåŠ¡å‡½æ•°
+static uint32_t leastCommonMultiple(uint32_t m, uint32_t n);//æ±‚æœ€å°å…¬å€æ•°
 
 //void (*TIM7_IRQHandler)(void) = NULL;
 void TIM7_IRQHandler()
@@ -31,11 +31,11 @@ void TIM7_IRQHandler()
 	cycleTick();
 }
 
- /*ÊµÏÖÍâ²¿º¯Êı*/
+ /*å®ç°å¤–éƒ¨å‡½æ•°*/
 
 /*
- * ÅäÖÃ¶¨Ê±Æ÷
- * Ã¿¸ôdelta_tºÁÃë²úÉúÒ»´ÎÖĞ¶Ï
+ * é…ç½®å®šæ—¶å™¨
+ * æ¯éš”delta_tæ¯«ç§’äº§ç”Ÿä¸€æ¬¡ä¸­æ–­
  */
 void cycleInit(uint32_t delta_t)
 {
@@ -43,10 +43,10 @@ void cycleInit(uint32_t delta_t)
 }
 
 /*
- * ³õÊ¼»¯Ò»¸öÇ°Ì¨ÈÎÎñ
- * ÅäÖÃÒ»¸öÇ°Ì¨ÈÎÎñº¯ÊıºÍËüµÄÖ´ĞĞÖÜÆÚ
- * Ã¿¾­¹ıperiod¸ödelta_tºÁÃë¾ÍÖ´ĞĞÒ»´ÎÈÎÎñº¯Êı
- * Ç°Ì¨º¯ÊıµÄÖ´ĞĞÊ±¼ä±ØĞëÊÇ100us¼¶ÒÔÏÂµÄ£¬·ñÔò½«»á³öÏÖ²»ÎÈ¶¨
+ * åˆå§‹åŒ–ä¸€ä¸ªå‰å°ä»»åŠ¡
+ * é…ç½®ä¸€ä¸ªå‰å°ä»»åŠ¡å‡½æ•°å’Œå®ƒçš„æ‰§è¡Œå‘¨æœŸ
+ * æ¯ç»è¿‡periodä¸ªdelta_tæ¯«ç§’å°±æ‰§è¡Œä¸€æ¬¡ä»»åŠ¡å‡½æ•°
+ * å‰å°å‡½æ•°çš„æ‰§è¡Œæ—¶é—´å¿…é¡»æ˜¯100usçº§ä»¥ä¸‹çš„ï¼Œå¦åˆ™å°†ä¼šå‡ºç°ä¸ç¨³å®š
  */
 void cycleForegroundTaskInit(
         cycleTask_TypeDef* task,
@@ -66,16 +66,16 @@ void cycleForegroundTaskInit(
     }
     s_previous_task = task;
 
-    //Ã¿×¢²áÒ»¸öÈÎÎñ£¬¶¼ÒªĞŞ¸Äg_cycle_periodÖµ
+    //æ¯æ³¨å†Œä¸€ä¸ªä»»åŠ¡ï¼Œéƒ½è¦ä¿®æ”¹g_cycle_periodå€¼
     g_cycle_period = leastCommonMultiple( g_cycle_period , period);
 }
 
 /*
- * ³õÊ¼»¯Ò»¸öºóÌ¨ÈÎÎñ
- * ÅäÖÃÒ»¸öºóÌ¨ÈÎÎñº¯ÊıºÍËüµÄÖ´ĞĞÖÜÆÚ
- * Ã¿¾­¹ıperiod¸ödelta_tºÁÃë¾ÍÖ´ĞĞÒ»´ÎÈÎÎñº¯Êı
- * Á½¸öºóÌ¨ÈÎÎñµÄÊ±¼äÍ¬Ê±Âú×ãÊ±£¬ÏÈ³õÊ¼»¯µÄºóÌ¨ÈÎÎñ½«»áÏÈÖ´ĞĞ£¬Òò´ËºóÌ¨ÈÎÎñµÄÔËĞĞÊ±¼ä²¢²»ÍêÈ«¾«È·
- * Ò²Òò´Ë£¬Ó¦µ±ÏÈ³õÊ¼»¯ºÄÊ±½Ï¶ÌµÄºóÌ¨ÈÎÎñ
+ * åˆå§‹åŒ–ä¸€ä¸ªåå°ä»»åŠ¡
+ * é…ç½®ä¸€ä¸ªåå°ä»»åŠ¡å‡½æ•°å’Œå®ƒçš„æ‰§è¡Œå‘¨æœŸ
+ * æ¯ç»è¿‡periodä¸ªdelta_tæ¯«ç§’å°±æ‰§è¡Œä¸€æ¬¡ä»»åŠ¡å‡½æ•°
+ * ä¸¤ä¸ªåå°ä»»åŠ¡çš„æ—¶é—´åŒæ—¶æ»¡è¶³æ—¶ï¼Œå…ˆåˆå§‹åŒ–çš„åå°ä»»åŠ¡å°†ä¼šå…ˆæ‰§è¡Œï¼Œå› æ­¤åå°ä»»åŠ¡çš„è¿è¡Œæ—¶é—´å¹¶ä¸å®Œå…¨ç²¾ç¡®
+ * ä¹Ÿå› æ­¤ï¼Œåº”å½“å…ˆåˆå§‹åŒ–è€—æ—¶è¾ƒçŸ­çš„åå°ä»»åŠ¡
  *
  */
 void cycleBackgroundTaskInit(
@@ -96,19 +96,19 @@ void cycleBackgroundTaskInit(
     }
     s_previous_task = task;
 
-    //Ã¿×¢²áÒ»¸öÈÎÎñ£¬¶¼ÒªĞŞ¸Äg_cycle_periodÖµ
+    //æ¯æ³¨å†Œä¸€ä¸ªä»»åŠ¡ï¼Œéƒ½è¦ä¿®æ”¹g_cycle_periodå€¼
     g_cycle_period = leastCommonMultiple( g_cycle_period , period);
 }
 
 /*
- * ºóÌ¨ÈÎÎñµ÷¶Èº¯Êı
- * Ö»Ğè·ÅÖÃÔÚmainº¯ÊıµÄwhile(1)ÖĞ£¬¼´¿É×Ô¶¯¹ÜÀíºóÌ¨ÈÎÎñ
+ * åå°ä»»åŠ¡è°ƒåº¦å‡½æ•°
+ * åªéœ€æ”¾ç½®åœ¨mainå‡½æ•°çš„while(1)ä¸­ï¼Œå³å¯è‡ªåŠ¨ç®¡ç†åå°ä»»åŠ¡
  */
 void cycleMainBackgroundTask(void)
 {
     cycleTask_TypeDef *task = (cycleTask_TypeDef*)g_first_background_task;
     if(g_cycle_flag){
-
+    g_cycle_flag = 0;
         while(task != NULL){
             if( !(g_cycle_count % task->period) ){
                 if( task->callback != NULL ){
@@ -122,8 +122,8 @@ void cycleMainBackgroundTask(void)
 
 
 /*
- * ÉèÖÃÈÎÎñµÄÖ´ĞĞÖÜÆÚ
- * Ã¿¾­¹ıperiod¸ödelta_tºÁÃë¾ÍÖ´ĞĞÒ»´ÎÈÎÎñº¯Êı
+ * è®¾ç½®ä»»åŠ¡çš„æ‰§è¡Œå‘¨æœŸ
+ * æ¯ç»è¿‡periodä¸ªdelta_tæ¯«ç§’å°±æ‰§è¡Œä¸€æ¬¡ä»»åŠ¡å‡½æ•°
  */
 void cycleTaskSetPeriod(cycleTask_TypeDef* task, uint32_t period)
 {
@@ -131,7 +131,7 @@ void cycleTaskSetPeriod(cycleTask_TypeDef* task, uint32_t period)
 }
 
 /*
- * ×¢²á¸ÃÈÎÎñ¶ÔÓ¦µÄº¯Êı
+ * æ³¨å†Œè¯¥ä»»åŠ¡å¯¹åº”çš„å‡½æ•°
  */
 void cycleTaskRegister(cycleTask_TypeDef* task, void(*taskFunction)(void))
 {
@@ -139,7 +139,7 @@ void cycleTaskRegister(cycleTask_TypeDef* task, void(*taskFunction)(void))
 }
 
 /*
- * ×¢Ïú¸ÃÈÎÎñ¶ÔÓ¦µÄº¯Êı
+ * æ³¨é”€è¯¥ä»»åŠ¡å¯¹åº”çš„å‡½æ•°
  */
 void cycleTaskUnregister(cycleTask_TypeDef* task)
 {
@@ -147,10 +147,10 @@ void cycleTaskUnregister(cycleTask_TypeDef* task)
 }
 
 
-/* ÊµÏÖÄÚ²¿º¯Êı */
+/* å®ç°å†…éƒ¨å‡½æ•° */
 
 /*
- * ¶¨Ê±Æ÷Ê¹ÄÜ(Ó²¼şÏà¹Ø)
+ * å®šæ—¶å™¨ä½¿èƒ½(ç¡¬ä»¶ç›¸å…³)
  */
 static void cycleTimerEnable(uint32_t delta_t , void(*intHandler)(void))
 {
@@ -172,7 +172,7 @@ static void cycleTimerEnable(uint32_t delta_t , void(*intHandler)(void))
 				TIM_TimeBaseInitStructure.TIM_Period = (1000)*delta_t - 1; 
 	
 				RCC_ClocksTypeDef rcc;
-				RCC_GetClocksFreq(&rcc);//»ñµÃ×ÜÏßÊ±ÖÓ
+				RCC_GetClocksFreq(&rcc);//è·å¾—æ€»çº¿æ—¶é’Ÿ
 				if(rcc.HCLK_Frequency / rcc.PCLK1_Frequency == 1){
 					TIM_TimeBaseInitStructure.TIM_Prescaler = rcc.PCLK1_Frequency/1000000 -1;
 				}else{
@@ -190,7 +190,7 @@ static void cycleTimerEnable(uint32_t delta_t , void(*intHandler)(void))
 				NVIC_Init(&NVIC_InitStructure);
 				TIM_Cmd(TIM7,ENABLE);
 		
-				//uint32_t system_clock;//ÏµÍ³Ê±ÖÓÆµÂÊ(Hz)
+				//uint32_t system_clock;//ç³»ç»Ÿæ—¶é’Ÿé¢‘ç‡(Hz)
         //system_clock = SysCtlClockGet();
 				
 				
@@ -198,7 +198,7 @@ static void cycleTimerEnable(uint32_t delta_t , void(*intHandler)(void))
 }
 
 /*
- * ¶¨Ê±Æ÷ÖĞ¶Ï×´Ì¬Çå³ı(Ó²¼şÏà¹Ø)
+ * å®šæ—¶å™¨ä¸­æ–­çŠ¶æ€æ¸…é™¤(ç¡¬ä»¶ç›¸å…³)
  */
 static void cycleTimerIntClear(void)
 {
@@ -206,7 +206,7 @@ static void cycleTimerIntClear(void)
 }
 
 /*
- * ¶¨Ê±Æ÷ÖĞ¶Ï·şÎñº¯Êı(Ó²¼şÎŞ¹Ø)
+ * å®šæ—¶å™¨ä¸­æ–­æœåŠ¡å‡½æ•°(ç¡¬ä»¶æ— å…³)
  */
 static inline void cycleTick(void)
 {
@@ -217,7 +217,7 @@ static inline void cycleTick(void)
     g_cycle_count++;
     g_cycle_count %= g_cycle_period;
 
-    //Ö´ĞĞÇ°Ì¨ÈÎÎñ
+    //æ‰§è¡Œå‰å°ä»»åŠ¡
     while( task != NULL){
 
         if( !(g_cycle_count % task->period) ){
@@ -230,7 +230,7 @@ static inline void cycleTick(void)
 }
 
 /*
- * Çó×îĞ¡¹«±¶Êı
+ * æ±‚æœ€å°å…¬å€æ•°
  */
 static uint32_t leastCommonMultiple(uint32_t m, uint32_t n)
 {
@@ -251,7 +251,7 @@ static uint32_t leastCommonMultiple(uint32_t m, uint32_t n)
         r   = max % min;
     }
 
-    //´ËÊ±minÖµ¼´Îª×î´ó¹«Ô¼Êı
+    //æ­¤æ—¶minå€¼å³ä¸ºæœ€å¤§å…¬çº¦æ•°
     temp = m * n / min;
 
     return temp;
